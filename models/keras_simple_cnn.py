@@ -23,6 +23,8 @@ from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import log_loss
 from keras.models import model_from_json
 
+dataset_path = "D:\\Aricent\\AIML\\Distracted-Driver-Detection\\state-farm-distracted-driver-detection"
+
 def get_im(path):
     # Load as grayscale
     img = cv2.imread(path, 0)
@@ -36,7 +38,7 @@ def load_train():
     print('Read train images')
     for j in range(10):
         print('Load folder c{}'.format(j))
-        path = os.path.join("D:\\Aricent\\AIML\\Distracted-Driver-Detection\\state-farm-distracted-driver-detection", 'imgs', 'train', 'c' + str(j), '*.jpg')
+        path = os.path.join(dataset_path, 'imgs', 'train', 'c' + str(j), '*.jpg')
         print(path)
         files = glob.glob(path)
         for fl in files:
@@ -45,11 +47,9 @@ def load_train():
             y_train.append(j)
     return X_train, y_train
 
-def load_test():
-    print('Read new_test images')
-    #path = os.path.join("C:\\Users\\Hack5CHETeam14.AD\\state-farm-distracted-driver-detection", 'imgs', 'new_test', '*.jpg')
-    #path = os.path.join("C:\\hack\\input", 'input.jpg')
-    path = os.path.join("D:\Aricent\AIML\Distracted-Driver-Detection\state-farm-distracted-driver-detection", 'input.jpg')
+def load_camera_img():
+    print('Read images from camera')
+    path = os.path.join(dataset_path, 'input.jpg')
     print(path)
     files = glob.glob(path)
     X_test = []
@@ -65,7 +65,6 @@ def load_test():
         #total += 1
         img=cv2.imread(path,0)
         plt.imshow(img)
-
     return X_test, X_test_id
 
 
@@ -91,16 +90,16 @@ def split_validation_set_with_hold_out(train, target, test_size):
     return X_train, X_test, X_holdout, y_train, y_test, y_holdout
 
 def read_model():
-    model = model_from_json(open(os.path.join('cache', 'architecture.json')).read())
-    model.load_weights(os.path.join('cache', 'model_weights.h5'))
+    model = model_from_json(open(os.path.join(dataset_path, 'cache', 'architecture.json')).read())
+    model.load_weights(os.path.join(dataset_path, 'cache', 'model_weights.h5'))
     return model
 
 def save_model(model):
     json_string = model.to_json()
-    if not os.path.isdir('cache'):
-        os.mkdir('cache')
-    open(os.path.join('cache', 'architecture.json'), 'w').write(json_string)
-    model.save_weights(os.path.join('cache', 'model_weights.h5'), overwrite=True)
+    if not os.path.isdir(os.path.join(dataset_path,'cache')):
+        os.mkdir(os.path.join(dataset_path,'cache'))
+    open(os.path.join(dataset_path,'cache', 'architecture.json'), 'w').write(json_string)
+    model.save_weights(os.path.join(dataset_path,'cache', 'model_weights.h5'), overwrite=True)
     
 def validate_holdout(model, holdout, target):
     predictions = model.predict(holdout, batch_size=128, verbose=1)
@@ -130,7 +129,6 @@ def classify_image(predications_new):
     for j in range(0,1):
       max_val = max(predictions_new[j])
       if max(predictions_new[j]) != (predictions_new[j][0]):
-        #beep_function()
         print ("WARNING !!! Test Driver %s Distracted." %(j+1))
         if (max_val == (predictions_new[j][1])):
             print ("            Texting in phone (Right hand).")
@@ -162,8 +160,10 @@ def classify_image(predications_new):
       else:
         print("Driver %s NOT Distracted" %(j+1))
         result = "normal driving"
+        return result
 
 def display_result(img, result_string):
+    #beep_function()
     #X_orig, y_orig = load_orig_camera_image()
     # Create a black image
     #img = np.zeros((512,512,3), np.uint8)
@@ -230,7 +230,7 @@ print('Split valid: ', len(X_test))
 print('Split holdout: ', len(X_holdout))
 
 #Building the Model
-model_from_cache = 0
+model_from_cache = 1
 
 if model_from_cache == 1:
     model = read_model()
@@ -262,13 +262,13 @@ else:
     print('Score holdout: ', score)
     
     validate_holdout(model, X_holdout, Y_holdout)
-    
-save_model(model)
+#save the model in cache
+    save_model(model)
 
 '''
 LOAD IMAGE DYNAMIC
 '''
-test_data_new, test_id_new = load_test()
+test_data_new, test_id_new = load_camera_img()
 
 test_data_new = np.array(test_data_new, dtype=np.uint8)
 test_data_new = test_data_new.reshape(test_data_new.shape[0], img_rows, img_cols, 1)
@@ -281,4 +281,4 @@ print(test_data_new.shape[0], 'test samples')
 #Predict Model
 predictions_new = model.predict(test_data_new, batch_size=128, verbose=1)
 
-classify_image(predictions_new)
+display_string = classify_image(predictions_new)
