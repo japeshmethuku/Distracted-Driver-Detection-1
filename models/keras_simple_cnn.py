@@ -46,26 +46,6 @@ def load_train():
     return X_train, y_train
 
 def load_test():
-    print('Read test images')
-    path = os.path.join("D:\\Aricent\\AIML\\Distracted-Driver-Detection\\state-farm-distracted-driver-detection", 'imgs', 'test', '*.jpg')
-    print(path)
-    files = glob.glob(path)
-    X_test = []
-    X_test_id = []
-    total = 0
-    thr = math.floor(len(files)/10)
-    for fl in files:
-        flbase = os.path.basename(fl)
-        img = get_im(fl)
-        X_test.append(img)
-        X_test_id.append(flbase)
-        total += 1
-        if total%thr == 0:
-            print('Read {} images from {}'.format(total, len(files)))
-
-    return X_test, X_test_id
-
-def load_new_test():
     print('Read new_test images')
     #path = os.path.join("C:\\Users\\Hack5CHETeam14.AD\\state-farm-distracted-driver-detection", 'imgs', 'new_test', '*.jpg')
     #path = os.path.join("C:\\hack\\input", 'input.jpg')
@@ -146,6 +126,42 @@ def create_submission(predictions, test_id, loss):
 #def beep_function():
     #playsound.playsound('C:\\hack\\beep.mp3', True)
     
+def classify_image(predications_new):
+    for j in range(0,1):
+      max_val = max(predictions_new[j])
+      if max(predictions_new[j]) != (predictions_new[j][0]):
+        #beep_function()
+        print ("WARNING !!! Test Driver %s Distracted." %(j+1))
+        if (max_val == (predictions_new[j][1])):
+            print ("            Texting in phone (Right hand).")
+            result = "Texting in phone (Right hand)"
+        if (max_val == (predictions_new[j][2])):
+            print ("            Speaking in phone (Right hand).")
+            result = "Speaking in phone (Right hand)"
+        if (max_val == (predictions_new[j][3])):
+            print ("            Texting in phone (Left Hand).")
+            result = "Texting in phone (Left hand)"
+        if (max_val == (predictions_new[j][4])):
+            print ("            Speaking in phone (Left Hand).")
+            result = "Speaking in phone (Left hand)"
+        if (max_val == (predictions_new[j][5])):
+            print ("            Adjusting car items..")
+            result = "Adjusting car items"
+        if (max_val == (predictions_new[j][6])):
+            print ("            Drinking..")
+            result = "Drinking.."
+        if (max_val == (predictions_new[j][7])):
+            print ("            Turning.")
+            result = "Turning.."
+        if (max_val == (predictions_new[j][8])):
+            print ("            Hand-Shakes.")
+            result = "Hand-shakes"
+        if (max_val == (predictions_new[j][9])):
+            print ("            SPEAKING with co-passengers..")
+            result = "SPEAKING with co-passengers"
+      else:
+        print("Driver %s NOT Distracted" %(j+1))
+        result = "normal driving"
 
 def display_result(img, result_string):
     #X_orig, y_orig = load_orig_camera_image()
@@ -249,15 +265,10 @@ else:
     
 save_model(model)
 
-
-
 '''
 LOAD IMAGE DYNAMIC
 '''
-test_data_new, test_id_new = load_new_test()
-#test_data_new, test_id_new = load_test()
-
-#   (test_data_new, test_id_new) = restore_data(cache_path)
+test_data_new, test_id_new = load_test()
 
 test_data_new = np.array(test_data_new, dtype=np.uint8)
 test_data_new = test_data_new.reshape(test_data_new.shape[0], img_rows, img_cols, 1)
@@ -269,54 +280,5 @@ print(test_data_new.shape[0], 'test samples')
 
 #Predict Model
 predictions_new = model.predict(test_data_new, batch_size=128, verbose=1)
-#if max(predictions_new[0]):
-#    print ("check")
 
-print(predictions_new)
-#score_new = 1
-#create_submission(predictions_new, test_id_new, score_new)
-#plt.imshow(test_data_new[0])
-#cv2.imshow(test_data_new[0])
-for j in range(0,1):
-  max_val = max(predictions_new[j])
-  if max(predictions_new[j]) != (predictions_new[j][0]):
-    #beep_function()
-    print ("WARNING !!! Test Driver %s Distracted." %(j+1))
-    if (max_val == (predictions_new[j][1])):
-        print ("            Texting in phone (Right hand).")
-        result = "Texting in phone (Right hand)"
-    if (max_val == (predictions_new[j][2])):
-        print ("            Speaking in phone (Right hand).")
-        result = "Speaking in phone (Right hand)"
-    if (max_val == (predictions_new[j][3])):
-        print ("            Texting in phone (Left Hand).")
-        result = "Texting in phone (Left hand)"
-    if (max_val == (predictions_new[j][4])):
-        print ("            Speaking in phone (Left Hand).")
-        result = "Speaking in phone (Left hand)"
-    if (max_val == (predictions_new[j][5])):
-        print ("            Adjusting car items..")
-        result = "Adjusting car items"
-    if (max_val == (predictions_new[j][6])):
-        print ("            Drinking..")
-        result = "Drinking.."
-    if (max_val == (predictions_new[j][7])):
-        print ("            Turning.")
-        result = "Turning.."
-    if (max_val == (predictions_new[j][8])):
-        print ("            Hand-Shakes.")
-        result = "Hand-shakes"
-    if (max_val == (predictions_new[j][9])):
-        print ("            SPEAKING with co-passengers..")
-        result = "SPEAKING with co-passengers"
-  else:
-    print("Driver %s NOT Distracted" %(j+1))
-    result = "normal driving"
-
-#path = os.path.join("C:\\Users\\Hack5CHETeam14.AD\\state-farm-distracted-driver-detection", 'imgs', 'new_test', 'driver.jpg')
-#path = os.path.join("C:\\hack\\input", 'input.jpg')
-#img=cv2.imread(path,0)
-#plt.imshow(img)
-
-
-#display_result(test_data_new[0], result)
+classify_image(predictions_new)
