@@ -76,12 +76,15 @@ def restore_data(path):
     return data
 
 def cache_data(data, path):
+    if not os.path.isdir(os.path.join(dataset_path,'cache')):
+        os.mkdir(os.path.join(dataset_path,'cache'))
     if os.path.isdir(os.path.dirname(path)):
         file = open(path, 'wb')
         pickle.dump(data, file)
         file.close()
     else:
         print('Directory doesnt exists')
+
 
 def split_validation_set_with_hold_out(train, target, test_size):
     random_state = 51
@@ -187,17 +190,20 @@ def display_result(img, result_string):
     cv2.imshow("img",img)
     #cv2.waitKey(0)
 
+def check_dataset_cache():
+    cache_path = os.path.join(dataset_path, 'cache', 'train.dat')
+    print (cache_path)
 
-cache_path = os.path.join('cache', 'train.dat')
-print (cache_path)
+    if not os.path.isfile(cache_path):
+        print ("cache path doesnt exist previously")
+        train_data_, train_target_ = load_train()
+        cache_data((train_data_, train_target_), cache_path)
+    else:
+        print ("cache path exist previously")
+        (train_data_, train_target_) = restore_data(cache_path)
+    return train_data_, train_target_
 
-if not os.path.isfile(cache_path):
-    print ("cache path doesnt exist previously")
-    train_data, train_target = load_train()
-    cache_data((train_data, train_target), cache_path)
-else:
-    print ("cache path exist previously")
-    (train_data, train_target) = restore_data(cache_path)
+train_data, train_target = check_dataset_cache()
 
 img_rows, img_cols = 96, 128
 nb_classes = 10
